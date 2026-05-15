@@ -93,7 +93,7 @@ Rydex uses a **dual-service monorepo** — a Next.js application and a dedicated
 ```
 rydex-project/
 │
-├── rydex/                          # ✅ Next.js 16 Application
+├── rydex/                          # Next.js 16 Application
 │   ├── src/
 │   │   ├── app/                    # App Router (pages + API routes)
 │   │   │   └── api/
@@ -122,7 +122,7 @@ rydex-project/
 │   │
 │   └── tests/                      # Node.js built-in test suite
 │
-└── socketServer/                   # ✅ Dedicated Socket.IO Server
+└── socketServer/                   # Dedicated Socket.IO Server
     ├── index.js                    # Express + Socket.IO entry point
     └── models/                     # Shared Mongoose models
 ```
@@ -419,16 +419,16 @@ In your Cloudinary dashboard → **Settings → Upload → Upload presets**, ens
 
 ```
 ✅  Next.js app live → https://rydex-booking-jet.vercel.app
-□   Socket.IO server live on Render
-□   NEXT_PUBLIC_SOCKET_SERVER updated to Render URL in Vercel env vars
-□   Vercel redeployed after env var update
+✅  Socket.IO server live on Render
+✅  NEXT_PUBLIC_SOCKET_SERVER updated to Render URL in Vercel env vars
+✅  Vercel redeployed after env var update
 ✅  Google OAuth redirect URIs updated with production domain
-□   MongoDB Atlas IP Access List includes 0.0.0.0/0 (allow all) for Vercel serverless
-□   Razorpay webhook → https://rydex-booking-jet.vercel.app/api/payment/verify
-□   Test: Registration OTP email received
-□   Test: Google login works
-□   Test: Booking NLP returns structured data
-□   Test: Real-time tracking updates in browser
+✅  MongoDB Atlas IP Access List includes 0.0.0.0/0 (allow all) for Vercel serverless
+✅  Razorpay webhook → https://rydex-booking-jet.vercel.app/api/payment/verify
+✅  Test: Registration OTP email received
+✅  Test: Google login works
+✅  Test: Booking NLP returns structured data
+✅  Test: Real-time tracking updates in browser
 ```
 
 ---
@@ -545,12 +545,7 @@ npm test    # Node.js built-in test runner
 
 ## 👨‍💻 Author
 
-**Sk Mijanur Rahaman**
-
-[![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/mijanur1314)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com/in/your-profile)
-[![Live Demo](https://img.shields.io/badge/Live_Demo-00C7B7?style=for-the-badge&logo=vercel&logoColor=white)](https://rydex-booking-jet.vercel.app)
-
+**Sk Mijanur Rahaman (skmijanurrahaman1314@gmail.com)**
 ---
 
 <div align="center">
