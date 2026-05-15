@@ -86,7 +86,7 @@ export default function DriverRidePage() {
           bookingId: b._id, latitude: lat, longitude: lng, status: b.status,
         });
       },
-      err => console.error("GPS error:", err),
+      err => console.error("GPS error:", err.message),
       { enableHighAccuracy: true, maximumAge: 2000, timeout: 10000 }
     );
     return () => navigator.geolocation.clearWatch(watchId);

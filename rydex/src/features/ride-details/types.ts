@@ -19,6 +19,7 @@ export interface BookingDetails {
   userMobileNumber: string;
   driverMobileNumber: string;
   pickupOtp?: string;
+  dropOtp?: string;
 }
 
 export type PageRouter = {

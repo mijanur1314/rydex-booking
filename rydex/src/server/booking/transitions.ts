@@ -74,8 +74,7 @@ export async function acceptBooking(input: TransitionInput) {
   return updateDriverBooking({
     ...input,
     from: "requested",
-    to: "awaiting_payment",
-    paymentDeadlineMs: 5 * 60 * 1000,
+    to: "confirmed",
   });
 }
 

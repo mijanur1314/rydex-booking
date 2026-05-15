@@ -83,7 +83,7 @@ export function useCheckoutFlow() {
       const data = await res.json();
       if (data.success) {
         setBookingId(data.booking._id);
-        setStatus("requested");
+        setStatus(data.booking.status || "requested");
       } else {
         alert(data.message || "Booking failed");
       }

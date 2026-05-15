@@ -36,32 +36,43 @@ export async function POST(req: Request) {
 
     await booking.save();
 
+    if (process.env.NEXT_PUBLIC_SOCKET_SERVER) {
+      const axios = require('axios');
+      await axios.post(`${process.env.NEXT_PUBLIC_SOCKET_SERVER}/emit`, {
+        userId: booking.user._id,
+        event: 'booking-updated',
+        data: { dropOtp: otp }
+      }).catch(console.error);
+    }
+
     /* Send Mail */
 
     if (booking.user?.email) {
+      try {
+        await sendMail(
+          booking.user.email,
+          "Your Drop OTP - RYDEX",
+          `
+          <div style="font-family:sans-serif;padding:20px">
+            <h2>Ride OTP</h2>
 
-      await sendMail(
-        booking.user.email,
-        "Your Drop OTP - RYDEX",
-        `
-        <div style="font-family:sans-serif;padding:20px">
-          <h2>Ride OTP</h2>
+            <p>Your Drop OTP is:</p>
 
-          <p>Your Drop OTP is:</p>
+            <h1 style="letter-spacing:6px">${otp}</h1>
 
-          <h1 style="letter-spacing:6px">${otp}</h1>
+            <p>This OTP is valid for 5 minutes.</p>
 
-          <p>This OTP is valid for 5 minutes.</p>
+            <p>Share this OTP with your driver to complete the ride.</p>
 
-          <p>Share this OTP with your driver to complete the ride.</p>
+            <br/>
 
-          <br/>
-
-          <b>RYDEX</b>
-        </div>
-        `
-      );
-
+            <b>RYDEX</b>
+          </div>
+          `
+        );
+      } catch (mailError) {
+        console.error("Failed to send drop OTP email:", mailError);
+      }
     }
 
     return NextResponse.json({

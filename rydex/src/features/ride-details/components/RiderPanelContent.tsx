@@ -178,6 +178,12 @@ export function PanelContent({
             <div className="flex-1 min-w-0">
               <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-0.5">Drop</p>
               <p className="text-sm text-zinc-800 leading-snug">{booking.dropAddress || "—"}</p>
+              {booking.dropOtp && status === "started" && (
+                <div className="mt-1.5 inline-flex items-center gap-1.5 bg-rose-50 border border-rose-100 px-2.5 py-1 rounded-lg">
+                  <p className="text-rose-700 text-xs font-black tracking-widest font-mono">{booking.dropOtp}</p>
+                  <p className="text-rose-600 text-[10px] font-semibold">DROP OTP</p>
+                </div>
+              )}
             </div>
           </div>
         </div>

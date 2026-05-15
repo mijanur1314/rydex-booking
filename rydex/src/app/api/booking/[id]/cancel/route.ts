@@ -8,10 +8,10 @@ export async function POST(
 ) {
   await connectDb();
 const id =(await context.params).id
-  const booking =await Booking.findOneAndUpdate(
-  { _id: id, status: "requested" },
-  { status: "cancelled" }
-);
+  const booking = await Booking.findOneAndUpdate(
+    { _id: id, status: { $in: ["requested", "awaiting_payment"] } },
+    { status: "cancelled" }
+  );
 
   if (!booking)
     return NextResponse.json({ message: "Not found" }, { status: 404 });

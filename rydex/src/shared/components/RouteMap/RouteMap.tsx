@@ -121,31 +121,43 @@ export default function RouteMap({ pickup, drop, onDistance, onChange }: Props) 
   const [km,    setKm]    = useState<number | null>(null);
 
   const geocode = useCallback(async (q: string): Promise<[number, number] | null> => {
-    const r = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=1`);
-    const d = await r.json();
-    if (!d?.features?.length) return null;
-    const [lon, lat] = d.features[0].geometry.coordinates;
-    return [lat, lon];
+    try {
+      const r = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=1`);
+      const d = await r.json();
+      if (!d?.features?.length) return null;
+      const [lon, lat] = d.features[0].geometry.coordinates;
+      return [lat, lon];
+    } catch {
+      return null;
+    }
   }, []);
 
   const reverseGeocode = useCallback(async (lat: number, lon: number): Promise<string> => {
-    const r = await fetch(`https://photon.komoot.io/reverse?lat=${lat}&lon=${lon}&limit=1`);
-    const d = await r.json();
-    if (!d?.features?.length) return "";
-    const p = d.features[0].properties;
-    return [p.name, p.city, p.state, p.country].filter(Boolean).join(", ");
+    try {
+      const r = await fetch(`https://photon.komoot.io/reverse?lat=${lat}&lon=${lon}&limit=1`);
+      const d = await r.json();
+      if (!d?.features?.length) return "";
+      const p = d.features[0].properties;
+      return [p.name, p.city, p.state, p.country].filter(Boolean).join(", ");
+    } catch {
+      return "";
+    }
   }, []);
 
   const loadRoute = useCallback(async (a: [number, number], b: [number, number]) => {
-    const r = await fetch(
-      `https://router.project-osrm.org/route/v1/driving/${a[1]},${a[0]};${b[1]},${b[0]}?overview=full&geometries=geojson`
-    );
-    const d = await r.json();
-    if (!d?.routes?.length) return;
-    setRoute(d.routes[0].geometry.coordinates.map(([lon, lat]: number[]) => [lat, lon]));
-    const distKm = +((d.routes[0].distance / 1000).toFixed(2));
-    setKm(distKm);
-    onDistance?.(distKm);
+    try {
+      const r = await fetch(
+        `https://router.project-osrm.org/route/v1/driving/${a[1]},${a[0]};${b[1]},${b[0]}?overview=full&geometries=geojson`
+      );
+      const d = await r.json();
+      if (!d?.routes?.length) return;
+      setRoute(d.routes[0].geometry.coordinates.map(([lon, lat]: number[]) => [lat, lon]));
+      const distKm = +((d.routes[0].distance / 1000).toFixed(2));
+      setKm(distKm);
+      onDistance?.(distKm);
+    } catch {
+      // network error — map renders without route line
+    }
   }, [onDistance]);
 
   useEffect(() => {

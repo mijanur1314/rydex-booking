@@ -5,7 +5,6 @@ import VendorDashboard from "@/features/partner/components/VendorDashboard";
 import User from "@/models/user.model";
 import connectDb from "@/lib/db";
 import PublicHome from "@/features/home/components/PublicHome";
-import GeoUpdater from "@/features/ride-details/components/GeoUpdater";
 
 export default async function Home() {
   const session = await auth();
@@ -37,7 +36,6 @@ export default async function Home() {
   return (
     <div className="w-full min-h-screen bg-white">
       <Nav />
-      <GeoUpdater userId={session?.user?.id} />
       {isVendor && vendorData ? (
         <VendorDashboard
           vendorStep={vendorData.vendorStep}

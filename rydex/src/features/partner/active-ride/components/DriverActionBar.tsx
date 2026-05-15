@@ -34,13 +34,30 @@ export function ActionBar({
   dropOtpMode, dropOtp, loadingDropOtp, dropOtpError,
   setDropOtpMode, setDropOtp, setDropOtpError, handleVerifyDropOtp, sendDropOtp,
 }: ActionBarProps) {
-  if (!["confirmed", "started"].includes(status)) return null;
+
+  /* Not an actionable status — render nothing */
+  if (!["confirmed", "started", "awaiting_payment"].includes(status)) return null;
+
+  /* ── Waiting for user to pay ── */
+  if (status === "awaiting_payment") {
+    return (
+      <div className="flex-shrink-0 border-t border-zinc-100 bg-white px-5 py-4">
+        <div className="flex items-center gap-3 bg-purple-50 border border-purple-200 rounded-2xl px-4 py-3">
+          <span className="w-2.5 h-2.5 rounded-full bg-purple-400 animate-pulse flex-shrink-0" />
+          <div>
+            <p className="text-sm font-semibold text-purple-800">Waiting for Customer Payment</p>
+            <p className="text-xs text-purple-600 mt-0.5">The customer needs to complete payment before you can proceed.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-shrink-0 border-t border-zinc-100 bg-white px-5 py-4">
       <AnimatePresence mode="wait">
 
-        {/* STATE 1 — Arrived */}
+        {/* STATE 1 — Arrived at pickup */}
         {status === "confirmed" && !otpMode && !otpVerified && (
           <motion.button key="arrived"
             initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
@@ -51,7 +68,7 @@ export function ActionBar({
           </motion.button>
         )}
 
-        {/* STATE 2 — Pickup OTP */}
+        {/* STATE 2 — Enter pickup OTP */}
         {status === "confirmed" && otpMode && !otpVerified && (
           <motion.div key="pickup-otp"
             initial={{ opacity: 0, y: 10, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -65,28 +82,39 @@ export function ActionBar({
             <div className="p-4 space-y-3">
               <p className="text-xs text-zinc-500">Ask the customer for their 4-digit OTP to start the ride.</p>
               <div className="flex justify-center">
-                <input type="text" inputMode="numeric" maxLength={4} value={otp}
+                <input
+                  type="text" inputMode="numeric" maxLength={4} value={otp}
                   onChange={e => { setOtp(e.target.value.replace(/\D/g, "")); setOtpError(""); }}
                   placeholder="· · · ·"
                   className="w-48 border-2 border-zinc-200 focus:border-zinc-900 rounded-xl px-4 py-3 text-center text-2xl tracking-[0.5em] font-black outline-none transition-colors"
                 />
               </div>
-              {otpError && <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-red-500 text-xs text-center font-medium">{otpError}</motion.p>}
+              {otpError && (
+                <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-red-500 text-xs text-center font-medium">
+                  {otpError}
+                </motion.p>
+              )}
               <div className="flex gap-2">
-                <button onClick={() => { setOtpMode(false); setOtp(""); setOtpError(""); }}
+                <button
+                  onClick={() => { setOtpMode(false); setOtp(""); setOtpError(""); }}
                   className="flex-1 border border-zinc-200 bg-white text-zinc-700 py-2.5 rounded-xl text-sm font-semibold active:scale-[0.97] transition-all"
-                >Cancel</button>
-                <button onClick={handleVerifyOtp} disabled={loadingOtp || otp.length < 4}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleVerifyOtp} disabled={loadingOtp || otp.length < 4}
                   className="flex-1 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-40 text-white py-2.5 rounded-xl text-sm font-bold active:scale-[0.97] transition-all"
                 >
-                  {loadingOtp ? <span className="flex items-center justify-center gap-2"><span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />Verifying…</span> : "Verify OTP"}
+                  {loadingOtp
+                    ? <span className="flex items-center justify-center gap-2"><span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />Verifying…</span>
+                    : "Verify OTP"}
                 </button>
               </div>
             </div>
           </motion.div>
         )}
 
-        {/* STATE 3 — Pickup verified */}
+        {/* STATE 3 — Pickup OTP verified, ride started */}
         {otpVerified && status === "confirmed" && (
           <motion.div key="pickup-verified"
             initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
@@ -98,7 +126,7 @@ export function ActionBar({
           </motion.div>
         )}
 
-        {/* STATE 4 — Mark as Dropped */}
+        {/* STATE 4 — Mark as dropped */}
         {status === "started" && !dropOtpMode && (
           <motion.button key="drop-btn"
             initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
@@ -109,7 +137,7 @@ export function ActionBar({
           </motion.button>
         )}
 
-        {/* STATE 5 — Drop OTP */}
+        {/* STATE 5 — Enter drop OTP */}
         {status === "started" && dropOtpMode && (
           <motion.div key="drop-otp"
             initial={{ opacity: 0, y: 10, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -123,21 +151,32 @@ export function ActionBar({
             <div className="p-4 space-y-3">
               <p className="text-xs text-zinc-500">Ask the customer for their drop OTP to complete the ride.</p>
               <div className="flex justify-center">
-                <input type="text" inputMode="numeric" maxLength={4} value={dropOtp}
+                <input
+                  type="text" inputMode="numeric" maxLength={4} value={dropOtp}
                   onChange={e => { setDropOtp(e.target.value.replace(/\D/g, "")); setDropOtpError(""); }}
                   placeholder="· · · ·"
                   className="w-48 border-2 border-zinc-200 focus:border-emerald-600 rounded-xl px-4 py-3 text-center text-2xl tracking-[0.5em] font-black outline-none transition-colors"
                 />
               </div>
-              {dropOtpError && <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-red-500 text-xs text-center font-medium">{dropOtpError}</motion.p>}
+              {dropOtpError && (
+                <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-red-500 text-xs text-center font-medium">
+                  {dropOtpError}
+                </motion.p>
+              )}
               <div className="flex gap-2">
-                <button onClick={() => { setDropOtpMode(false); setDropOtp(""); setDropOtpError(""); }}
+                <button
+                  onClick={() => { setDropOtpMode(false); setDropOtp(""); setDropOtpError(""); }}
                   className="flex-1 border border-zinc-200 bg-white text-zinc-700 py-2.5 rounded-xl text-sm font-semibold active:scale-[0.97] transition-all"
-                >Cancel</button>
-                <button onClick={handleVerifyDropOtp} disabled={loadingDropOtp || dropOtp.length < 4}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleVerifyDropOtp} disabled={loadingDropOtp || dropOtp.length < 4}
                   className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white py-2.5 rounded-xl text-sm font-bold active:scale-[0.97] transition-all"
                 >
-                  {loadingDropOtp ? <span className="flex items-center justify-center gap-2"><span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />Verifying…</span> : "Complete Ride"}
+                  {loadingDropOtp
+                    ? <span className="flex items-center justify-center gap-2"><span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />Verifying…</span>
+                    : "Complete Ride"}
                 </button>
               </div>
             </div>
@@ -148,7 +187,3 @@ export function ActionBar({
     </div>
   );
 }
-
-/* ══════════════════════════════════════════════════════════════════════
-   PANEL CONTENT
-══════════════════════════════════════════════════════════════════════ */

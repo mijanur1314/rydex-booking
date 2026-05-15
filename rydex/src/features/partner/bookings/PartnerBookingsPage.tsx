@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import axios from "axios";
 import {
   IndianRupee,
   Loader2,
@@ -13,6 +14,8 @@ import {
   MapPin,
   User,
   Phone,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
 
 interface Booking {
@@ -41,6 +44,7 @@ export default function PartnerBookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("All");
+  const [processingId, setProcessingId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -57,6 +61,25 @@ export default function PartnerBookingsPage() {
 
     fetchBookings();
   }, []);
+
+  /** Accept or reject a pending booking directly from the bookings list */
+  const handleAction = async (bookingId: string, action: "accept" | "reject") => {
+    try {
+      setProcessingId(bookingId);
+      await axios.post(`/api/booking/${bookingId}/${action}`);
+      // Refresh the list after action
+      const res = await fetch("/api/partner/bookings");
+      const data = await res.json();
+      setBookings(data.bookings || []);
+      if (action === "accept") {
+        window.location.href = "/partner/active-ride";
+      }
+    } catch {
+      alert("Action failed. Please try again.");
+    } finally {
+      setProcessingId(null);
+    }
+  };
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
@@ -262,8 +285,8 @@ export default function PartnerBookingsPage() {
                       <div className="flex items-center gap-2">
                         <span className="text-xs text-gray-500">Payment:</span>
                         <span className={`text-xs px-2 py-1 rounded-full ${
-                          booking.paymentStatus === 'paid' 
-                            ? 'bg-green-100 text-green-700' 
+                          booking.paymentStatus === 'paid'
+                            ? 'bg-green-100 text-green-700'
                             : 'bg-yellow-100 text-yellow-700'
                         }`}>
                           {booking.paymentStatus || 'pending'}
@@ -275,18 +298,42 @@ export default function PartnerBookingsPage() {
                         )}
                       </div>
 
-                      {booking.status!=="completed" &&  <div className="flex items-center gap-2">
-                        {/* STATUS UPDATE BUTTONS - PARTNER SPECIFIC */}
-                        
-                        <button
-                          onClick={() => window.location.href = `/partner/active-ride`}
-                          className="flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-4 py-1.5 rounded-lg transition-colors"
-                        >
-                          <span>Details</span>
-                          <ChevronRight className="w-4 h-4" />
-                        </button>
-                      </div>}
-                     
+                      <div className="flex items-center gap-2">
+                        {/* PENDING / REQUESTED → Show Accept + Reject */}
+                        {["pending", "requested"].includes(booking.status) && (
+                          <>
+                            <button
+                              onClick={() => handleAction(booking._id, "reject")}
+                              disabled={processingId === booking._id}
+                              className="flex items-center gap-1 text-sm font-medium text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                            >
+                              <XCircle className="w-4 h-4" />
+                              <span>Reject</span>
+                            </button>
+                            <button
+                              onClick={() => handleAction(booking._id, "accept")}
+                              disabled={processingId === booking._id}
+                              className="flex items-center gap-1 text-sm font-medium text-white bg-green-600 hover:bg-green-700 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                            >
+                              {processingId === booking._id
+                                ? <Loader2 className="w-4 h-4 animate-spin" />
+                                : <CheckCircle2 className="w-4 h-4" />}
+                              <span>Accept</span>
+                            </button>
+                          </>
+                        )}
+
+                        {/* CONFIRMED / STARTED → Show Details link */}
+                        {["confirmed", "started"].includes(booking.status) && (
+                          <button
+                            onClick={() => window.location.href = "/partner/active-ride"}
+                            className="flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-4 py-1.5 rounded-lg transition-colors"
+                          >
+                            <span>Active Ride</span>
+                            <ChevronRight className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </motion.div>

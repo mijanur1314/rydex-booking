@@ -7,7 +7,7 @@ import axios from "axios";
 import { getSocket } from "@/lib/socket";
 
 interface Message {
-  id: string;
+  id?: string; _id?: string;
   text: string;
   sender: "user" | "driver";
   createdAt: Date | string;
@@ -170,7 +170,7 @@ export default function RideChat({
 
               return (
                 <motion.div
-                  key={msg.id}
+                  key={msg.id || msg._id || idx}
                   initial={{ opacity: 0, y: 8, scale: 0.97 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
