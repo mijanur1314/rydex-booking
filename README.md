@@ -93,7 +93,7 @@ Rydex uses a **dual-service monorepo** — a Next.js application and a dedicated
 ```
 rydex-project/
 │
-├── rydex/                          # ✅ Next.js 16 Application
+├── rydex/                          # Next.js 16 Application
 │   ├── src/
 │   │   ├── app/                    # App Router (pages + API routes)
 │   │   │   └── api/
@@ -122,7 +122,7 @@ rydex-project/
 │   │
 │   └── tests/                      # Node.js built-in test suite
 │
-└── socketServer/                   # ✅ Dedicated Socket.IO Server
+└── socketServer/                   # Dedicated Socket.IO Server
     ├── index.js                    # Express + Socket.IO entry point
     └── models/                     # Shared Mongoose models
 ```
