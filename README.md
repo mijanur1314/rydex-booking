@@ -338,7 +338,7 @@ Rydex has two services to deploy. The recommended stack is:
 | Service | Platform | Why |
 |---|---|---|
 | **Next.js App** | [Vercel](https://vercel.com) | Zero-config, built for Next.js, free tier |
-| **Socket.IO Server** | [Railway](https://railway.app) | Persistent Node.js process, free starter plan |
+| **Socket.IO Server** | [Render](https://Render.app) | Persistent Node.js process, free starter plan |
 | **Database** | MongoDB Atlas | Already set up, free M0 tier |
 
 ---
@@ -369,9 +369,9 @@ Follow the prompts. When asked for the root directory, confirm `./`.
 
 ---
 
-### 🟣 Deploy the Socket.IO Server on Railway
+### 🟣 Deploy the Socket.IO Server on Render
 
-1. Go to [railway.app](https://railway.app) → **New Project → Deploy from GitHub Repo**
+1. Go to [Render.app](https://Render.app) → **New Project → Deploy from GitHub Repo**
 2. Select your repo
 3. Set **Root Directory** to `socketServer`
 4. Add environment variables:
@@ -379,11 +379,11 @@ Follow the prompts. When asked for the root directory, confirm `./`.
    MONGODB_URL = your_mongodb_connection_string
    PORT = 8000
    ```
-5. Railway auto-detects Node.js and runs `npm start`. Make sure `package.json` has:
+5. Render auto-detects Node.js and runs `npm start`. Make sure `package.json` has:
    ```json
    "scripts": { "start": "node index.js", "dev": "nodemon index.js" }
    ```
-6. After deploy, copy the Railway public URL (e.g. `https://rydex-socket.up.railway.app`)
+6. After deploy, copy the Render public URL (e.g. `https://rydex-socket.up.Render.app`)
 
 7. Go back to **Vercel → Your Project → Settings → Environment Variables** and update:
    ```
