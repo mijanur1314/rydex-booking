@@ -12,6 +12,8 @@
 
 **A production-grade, AI-powered ride-booking platform built with Next.js 16 App Router, real-time Socket.IO tracking, Gemini AI integration, Razorpay payments, Video KYC, and a complete 8-step multi-role vendor onboarding pipeline.**
 
+### 🌐 [Live Demo → https://rydex-booking-jet.vercel.app](https://rydex-booking-jet.vercel.app)
+
 [Features](#-features) · [Tech Stack](#-tech-stack) · [Architecture](#-architecture) · [AI Integration](#-ai-integration) · [Getting Started](#-getting-started) · [Push to GitHub](#-pushing-to-github) · [Deployment](#-deployment) · [API Reference](#-api-reference)
 
 </div>
@@ -351,6 +353,8 @@ Rydex has two services to deploy. The recommended stack is:
 4. Click **Environment Variables** and add every key from your `.env.local` (without the `NEXT_PUBLIC_SOCKET_SERVER` pointing to localhost — update it after deploying the socket server)
 5. Click **Deploy**
 
+> **Live deployment**: [https://rydex-booking-jet.vercel.app](https://rydex-booking-jet.vercel.app)
+
 **Option B — Via CLI**
 
 ```bash
@@ -383,7 +387,7 @@ Follow the prompts. When asked for the root directory, confirm `./`.
 
 7. Go back to **Vercel → Your Project → Settings → Environment Variables** and update:
    ```
-   NEXT_PUBLIC_SOCKET_SERVER = https://rydex-socket.up.railway.app
+   NEXT_PUBLIC_SOCKET_SERVER = https://rydex-socket.onrender.com
    ```
 8. Trigger a **Redeploy** on Vercel
 
@@ -395,11 +399,11 @@ Follow the prompts. When asked for the root directory, confirm `./`.
 2. Edit your OAuth 2.0 Client
 3. Add to **Authorised JavaScript origins**:
    ```
-   https://rydex.vercel.app
+   https://rydex-booking-jet.vercel.app
    ```
 4. Add to **Authorised redirect URIs**:
    ```
-   https://rydex.vercel.app/api/auth/callback/google
+   https://rydex-booking-jet.vercel.app/api/auth/callback/google
    ```
 5. Save
 
@@ -414,17 +418,17 @@ In your Cloudinary dashboard → **Settings → Upload → Upload presets**, ens
 ### ✅ Post-Deployment Checklist
 
 ```
-□  Next.js app live on Vercel
-□  Socket.IO server live on Railway
-□  NEXT_PUBLIC_SOCKET_SERVER updated to Railway URL in Vercel env vars
-□  Vercel redeployed after env var update
-□  Google OAuth redirect URIs updated with production domain
-□  MongoDB Atlas IP Access List includes 0.0.0.0/0 (allow all) for Vercel serverless
-□  Razorpay webhook pointing to https://your-domain.vercel.app/api/payment/verify
-□  Test: Registration OTP email received
-□  Test: Google login works
-□  Test: Booking NLP returns structured data
-□  Test: Real-time tracking updates in browser
+✅  Next.js app live → https://rydex-booking-jet.vercel.app
+□   Socket.IO server live on Render
+□   NEXT_PUBLIC_SOCKET_SERVER updated to Render URL in Vercel env vars
+□   Vercel redeployed after env var update
+✅  Google OAuth redirect URIs updated with production domain
+□   MongoDB Atlas IP Access List includes 0.0.0.0/0 (allow all) for Vercel serverless
+□   Razorpay webhook → https://rydex-booking-jet.vercel.app/api/payment/verify
+□   Test: Registration OTP email received
+□   Test: Google login works
+□   Test: Booking NLP returns structured data
+□   Test: Real-time tracking updates in browser
 ```
 
 ---
@@ -543,8 +547,9 @@ npm test    # Node.js built-in test runner
 
 **Sk Mijanur Rahaman**
 
-[![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/your-username)
+[![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/mijanur1314)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com/in/your-profile)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-00C7B7?style=for-the-badge&logo=vercel&logoColor=white)](https://rydex-booking-jet.vercel.app)
 
 ---
 
