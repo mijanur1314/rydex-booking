@@ -10,13 +10,14 @@ const registerSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
   email: z.email().trim().toLowerCase(),
   password: z.string().min(6, "Password must be at least 6 characters"),
+  role: z.enum(["user", "vendor"]).optional().default("user"),
 });
 
 export async function POST(req: NextRequest) {
   try {
     await connectDb();
 
-    const { name, email, password } = await parseJsonBody(req, registerSchema);
+    const { name, email, password, role } = await parseJsonBody(req, registerSchema);
 
     const existingUser = await User.findOne({ email });
 
@@ -34,6 +35,11 @@ export async function POST(req: NextRequest) {
     if (existingUser && !existingUser.isEmailVerified) {
       existingUser.name = name;
       existingUser.password = hashedPassword;
+      existingUser.role = role;
+      if (role === "vendor") {
+        existingUser.vendorOnboardingStep = 0;
+        existingUser.vendorStatus = "pending";
+      }
       existingUser.otp = otp;
       existingUser.otpExpiresAt = otpExpiresAt;
 
@@ -43,7 +49,11 @@ export async function POST(req: NextRequest) {
         name,
         email,
         password: hashedPassword,
-        role: "user",
+        role,
+        ...(role === "vendor" ? {
+          vendorOnboardingStep: 0,
+          vendorStatus: "pending"
+        } : {}),
         isEmailVerified: false,
         otp,
         otpExpiresAt,

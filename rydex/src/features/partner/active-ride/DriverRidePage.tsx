@@ -8,6 +8,9 @@ import { motion } from "framer-motion";
 import { MAP_STATUS, PEEK_H, STATUS_LABEL, TERMINAL } from "./constants";
 import { ActionBar, CompletedScreen, FailedScreen, PanelContent } from "./components/DriverRideScreens";
 import type { BookingStatus, IBooking, SocketLocationPayload } from "./types";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/redux/store";
+import { fetchActiveRide, setActiveBooking } from "@/redux/rideSlice";
 
 export type { BookingStatus, IBooking, PaymentStatus } from "./types";
 
@@ -16,8 +19,10 @@ const LiveRideMap = dynamic(() => import("@/features/ride-details/components/Liv
 /* ══════════════════════════════════════════════════════════════════════ */
 export default function DriverRidePage() {
 
-  const [booking,       setBooking]       = useState<IBooking | null>(null);
-  const [fetchDone,     setFetchDone]     = useState(false);
+  const dispatch = useDispatch<AppDispatch>();
+  const { activeBooking: booking, status: fetchStatus } = useSelector((state: RootState) => state.ride);
+  const fetchDone = fetchStatus === "succeeded" || fetchStatus === "failed";
+
   const [driverPos,     setDriverPos]     = useState<[number, number] | null>(null);
   const [pickupPos,     setPickupPos]     = useState<[number, number] | null>(null);
   const [dropPos,       setDropPos]       = useState<[number, number] | null>(null);
@@ -49,11 +54,10 @@ export default function DriverRidePage() {
 
   /* ── FETCH ── */
   useEffect(() => {
-    fetch("/api/partner/bookings/active")
-      .then(r => r.ok ? r.json() : null)
-      .then(data => {
+    if (fetchStatus === "idle") {
+      dispatch(fetchActiveRide()).then((action) => {
+        const data = action.payload as IBooking;
         if (data && data._id) {
-          setBooking(data);
           if (data.pickupLocation?.coordinates) {
             setPickupPos([data.pickupLocation.coordinates[1], data.pickupLocation.coordinates[0]]);
           }
@@ -63,10 +67,9 @@ export default function DriverRidePage() {
           if (data.status === "started")   { setOtpVerified(true); setOtpMode(false); }
           if (data.status === "completed") { setOtpVerified(true); }
         }
-      })
-      .catch(err => console.error("Fetch error:", err))
-      .finally(() => setFetchDone(true));
-  }, []);
+      });
+    }
+  }, [dispatch, fetchStatus]);
 
   /* ── GPS — only for active rides, uses ref to avoid stale closure ── */
   useEffect(() => {
@@ -99,8 +102,18 @@ export default function DriverRidePage() {
     const socket = getSocket();
     socket.emit("join-booking", booking._id);
     socket.on("driver-location", (d: SocketLocationPayload) => setDriverPos([d.latitude, d.longitude]));
-    return () => { socket.off("driver-location"); };
-  }, [booking?._id, booking?.status]);
+    
+    socket.on("booking-updated", (data: { bookingId: string; status: BookingStatus }) => {
+      if (data.bookingId === booking._id) {
+        dispatch(setActiveBooking({ ...booking, status: data.status }));
+      }
+    });
+
+    return () => { 
+      socket.off("driver-location"); 
+      socket.off("booking-updated");
+    };
+  }, [booking, dispatch]);
 
   /* ── OTP HANDLERS ── */
   const sendPickupOtp = async () => {
@@ -126,7 +139,7 @@ export default function DriverRidePage() {
       setOtpMode(false);
       setOtp("");
       setChatOpen(false);
-      setBooking(prev => prev ? { ...prev, status: "started" } : prev);
+      dispatch(setActiveBooking(booking ? { ...booking, status: "started" } : null));
     } catch { setOtpError("Verification failed"); }
     finally   { setLoadingOtp(false); }
   };
@@ -152,7 +165,7 @@ export default function DriverRidePage() {
       if (!res.ok) { setDropOtpError(data.message || "Invalid OTP"); return; }
       setDropOtp("");
       setDropOtpMode(false);
-      setBooking(prev => prev ? { ...prev, status: "completed" } : prev);
+      dispatch(setActiveBooking(booking ? { ...booking, status: "completed" } : null));
     } catch { setDropOtpError("Verification failed"); }
     finally   { setLoadingDropOtp(false); }
   };

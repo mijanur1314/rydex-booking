@@ -85,7 +85,10 @@ export function useBookRideForm() {
           setLocating(false);
         }
       },
-      () => setLocating(false),
+      (err) => {
+        setLocating(false);
+        alert(`Could not access GPS location: ${err.message}. Please check browser permissions or type your address manually.`);
+      },
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
     );
   };

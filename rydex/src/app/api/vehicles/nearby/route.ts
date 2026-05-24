@@ -4,6 +4,9 @@ import { z } from "zod";
 import connectDb from "@/lib/db";
 import User from "@/models/user.model";
 import Vehicle from "@/models/vehicle.model";
+import Redis from "ioredis";
+
+const redis = new Redis(process.env.UPSTASH_REDIS_URL || "");
 import { parseJsonBody, validationErrorResponse } from "@/server/http/validation";
 
 const nearbyVehiclesSchema = z.object({
@@ -18,19 +21,25 @@ export async function POST(req: Request) {
 
     const { latitude, longitude, vehicleType } = await parseJsonBody(req, nearbyVehiclesSchema);
 
+    const nearbyDriverIds = await redis.georadius(
+      "driver-locations",
+      longitude,
+      latitude,
+      5000,
+      "km"
+    );
+
+    console.log("Nearby driver IDs from Redis:", nearbyDriverIds, "for lat:", latitude, "lng:", longitude);
+
+    if (!nearbyDriverIds || !nearbyDriverIds.length) {
+      return NextResponse.json({ success: true, vehicles: [] });
+    }
+
     const vendors = await User.find({
+      _id: { $in: nearbyDriverIds },
       role: "vendor",
       isOnline: true,
       vendorStatus: "approved",
-      location: {
-        $near: {
-          $geometry: {
-            type: "Point",
-            coordinates: [longitude, latitude],
-          },
-          $maxDistance: 5000,
-        },
-      },
     }).select("_id");
 
     const vendorIds = vendors.map((vendor) => vendor._id);
@@ -45,6 +54,8 @@ export async function POST(req: Request) {
       isActive: true,
       ...(vehicleType && { type: vehicleType }),
     }).lean();
+
+    console.log("Found vehicles for these vendors:", vehicles.length, "matching type:", vehicleType);
 
     return NextResponse.json({
       success: true,

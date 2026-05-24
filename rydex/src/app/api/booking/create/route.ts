@@ -3,6 +3,7 @@ import axios from "axios";
 import connectDb from "@/lib/db";
 import Booking from "@/models/booking.model";
 import { z } from "zod";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { AuthError, requireSessionUser } from "@/server/auth/guards";
 import {
   BookingValidationError,
@@ -34,6 +35,13 @@ export async function POST(req: Request) {
     await connectDb();
 
     const user = await requireSessionUser();
+    
+    // Phase 4: Redis Rate Limiting (max 3 bookings per minute)
+    const rateLimit = await checkRateLimit(`booking_create_${user.id}`, 3, 60);
+    if (!rateLimit.success) {
+      return NextResponse.json({ message: "Too many booking requests. Please wait a minute." }, { status: 429 });
+    }
+
     const body = await parseJsonBody(req, createBookingSchema);
     const input = parseCreateBookingInput(body);
     const sanitizedMobileNumber = sanitizeMobileNumber(input.mobileNumber);

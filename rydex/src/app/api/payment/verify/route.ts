@@ -3,6 +3,7 @@ import Booking from "@/models/booking.model";
 import { mongoIdSchema, parseJsonBody, validationErrorResponse } from "@/server/http/validation";
 import crypto from "crypto";
 import { z } from "zod";
+import axios from "axios";
 
 const verifyPaymentSchema = z.object({
   bookingId: mongoIdSchema,
@@ -44,6 +45,14 @@ export async function POST(req: Request) {
       return Response.json({ success: false }, { status: 404 });
     }
 
+    if (booking.status === "confirmed") {
+      return Response.json({
+        success: true,
+        adminCommission: booking.adminCommission,
+        partnerAmount: booking.partnerAmount,
+      });
+    }
+
     const adminCommission = booking.fare * 0.1;
     const partnerAmount = booking.fare - adminCommission;
 
@@ -53,6 +62,18 @@ export async function POST(req: Request) {
     booking.partnerAmount = partnerAmount;
 
     await booking.save();
+
+    const socketServerUrl = process.env.NEXT_PUBLIC_SOCKET_SERVER;
+    if (socketServerUrl) {
+      await axios.post(`${socketServerUrl}/emit-room`, {
+        room: `booking-${booking._id}`,
+        event: "booking-updated",
+        data: {
+          bookingId: booking._id,
+          status: booking.status,
+        },
+      }).catch(console.error);
+    }
 
     return Response.json({
       success: true,

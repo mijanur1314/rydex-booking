@@ -23,7 +23,13 @@ function GeoUpdater({ userId }: { userId: string | undefined }) {
 
     // Authenticate the socket connection with the user ID
     socketRef.current.emit("identity", userId);
-       
+
+    // Re-authenticate if the socket reconnects
+    const handleConnect = () => {
+      socketRef.current?.emit("identity", userId);
+    };
+    socketRef.current.on("connect", handleConnect);
+
     const watcher = navigator.geolocation.watchPosition(
       (pos) => {
         const now = Date.now();
@@ -48,6 +54,7 @@ function GeoUpdater({ userId }: { userId: string | undefined }) {
 
     return () => {
       navigator.geolocation.clearWatch(watcher);
+      socketRef.current?.off("connect", handleConnect);
     };
   }, [userId]);
 

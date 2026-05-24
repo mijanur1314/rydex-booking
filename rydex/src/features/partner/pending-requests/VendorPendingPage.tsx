@@ -18,8 +18,31 @@ type Booking = {
   pickupAddress: string;
   dropAddress: string;
   fare: number;
+  distance?: number;
+  vehicleType?: string;
+  user?: { name: string };
   createdAt: string;
 };
+
+function CountdownTimer({ createdAt }: { createdAt: string }) {
+  const [timeLeft, setTimeLeft] = useState(60);
+
+  useEffect(() => {
+    const start = new Date(createdAt).getTime();
+    const interval = setInterval(() => {
+      const now = new Date().getTime();
+      const diff = Math.floor(60 - (now - start) / 1000);
+      setTimeLeft(diff > 0 ? diff : 0);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [createdAt]);
+
+  return (
+    <span className={`font-bold ${timeLeft < 15 ? "text-red-500" : "text-emerald-500"}`}>
+      {timeLeft > 0 ? `${timeLeft}s left to accept` : "Expired"}
+    </span>
+  );
+}
 
 export default function VendorPendingPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -67,8 +90,11 @@ useEffect(() => {
     try {
       setProcessingId(bookingId);
       await axios.post(`/api/booking/${bookingId}/${action}`);
-      fetchPendingBookings();
-      router.push("/partner/bookings")
+      if (action === "accept") {
+        router.push("/partner/active-ride");
+      } else {
+        fetchPendingBookings();
+      }
     } catch {
       alert("Action failed");
     } finally {
@@ -113,8 +139,12 @@ useEffect(() => {
                 animate={{ opacity: 1, y: 0 }}
                 whileHover={{ y: -2 }}
                 transition={{ duration: 0.25 }}
-                className="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm hover:shadow-md transition"
+                className="relative bg-white rounded-2xl border border-gray-200 p-8 shadow-sm hover:shadow-md transition overflow-hidden"
               >
+                {/* Pulse for new requests (less than 10 seconds old) */}
+                {new Date().getTime() - new Date(booking.createdAt).getTime() < 10000 && (
+                  <div className="absolute top-0 left-0 w-full h-1 bg-emerald-500 animate-pulse" />
+                )}
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
 
                   {/* Left Info */}
@@ -148,18 +178,26 @@ useEffect(() => {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 text-sm text-gray-500 mt-2">
-  <Clock size={14} className="opacity-70" />
-  <span className="font-medium">
-    {new Date(booking.createdAt).toLocaleString("en-IN", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    })}
-  </span>
-</div>
+                    <div className="flex items-center gap-4 text-sm text-gray-500 mt-2">
+                      <div className="flex items-center gap-1">
+                        <Clock size={14} className="opacity-70" />
+                        <CountdownTimer createdAt={booking.createdAt} />
+                      </div>
+                      {(booking.distance || booking.vehicleType) && (
+                        <div className="flex items-center gap-2">
+                          <span className="w-1 h-1 rounded-full bg-gray-300" />
+                          {booking.distance && <span>{booking.distance} km</span>}
+                          {booking.distance && booking.vehicleType && <span className="w-1 h-1 rounded-full bg-gray-300" />}
+                          {booking.vehicleType && <span className="capitalize">{booking.vehicleType}</span>}
+                        </div>
+                      )}
+                      {booking.user?.name && (
+                        <div className="flex items-center gap-2">
+                          <span className="w-1 h-1 rounded-full bg-gray-300" />
+                          <span className="font-medium text-black">👤 {booking.user.name}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* Right Side */}

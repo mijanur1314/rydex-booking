@@ -16,7 +16,7 @@ export async function GET() {
 
   const bookings = await Booking.find({
     driver: driverId,
-    paymentStatus: "paid",
+    paymentStatus: { $in: ["paid", "cash"] },
   }).sort({ createdAt: 1 });
 
   const earningsMap: Record<string, number> = {};

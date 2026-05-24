@@ -8,6 +8,8 @@
 ![Socket.IO](https://img.shields.io/badge/Socket.IO_4-010101?style=for-the-badge&logo=socketdotio&logoColor=white)
 ![Gemini AI](https://img.shields.io/badge/Gemini_2.0_Flash-4285F4?style=for-the-badge&logo=google&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS_4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
+![Sentry](https://img.shields.io/badge/Sentry-362D59?style=for-the-badge&logo=sentry&logoColor=white)
 ![Vercel](https://img.shields.io/badge/Deployed_on_Vercel-000?style=for-the-badge&logo=vercel&logoColor=white)
 
 **A production-grade, AI-powered ride-booking platform built with Next.js 16 App Router, real-time Socket.IO tracking, Gemini AI integration, Razorpay payments, Video KYC, and a complete 8-step multi-role vendor onboarding pipeline.**
@@ -22,7 +24,7 @@
 
 ## 📌 Project Overview
 
-Rydex is a **full-stack, production-grade vehicle booking platform** that lets users book rides across multiple vehicle types — bikes, autos, cars, trucks, and loading vehicles — while empowering vehicle owners to monetise their fleet through a structured, AI-assisted vendor onboarding flow.
+Rydex is a **full-stack, enterprise-grade vehicle booking platform** that lets users book rides across multiple vehicle types — bikes, autos, cars, trucks, and loading vehicles — while empowering vehicle owners to monetise their fleet through a structured, AI-assisted vendor onboarding flow. It is built to scale horizontally, utilizing an event-driven microservices architecture with in-memory Redis caching, cryptographic websocket security, and distributed tracing.
 
 The platform serves **three distinct user roles**:
 - 👤 **Users** — book rides, track drivers in real-time, pay online
@@ -60,6 +62,15 @@ The platform serves **three distinct user roles**:
 | 🚘 **Vehicle Approvals** | AI-generated vehicle risk analysis and summary |
 | 📈 **Platform Earnings** | Platform-wide earnings and analytics overview |
 
+### 🚀 Production Reliability & Architecture
+| Feature | Description |
+|---|---|
+| 🏎️ **Redis Geo-Spatial Queries** | High-frequency driver GPS locations are decoupled from MongoDB and stored in Upstash Redis (`GEOADD`/`GEORADIUS`) for millisecond lookups. |
+| 🛡️ **HMAC Socket Security** | Next.js API generates secure HMAC SHA-256 signatures for socket authentication, preventing malicious spoofing on the decoupled Node.js server. |
+| 📉 **Graceful Degradation** | React front-end automatically falls back to an intelligent HTTP polling mechanism if the WebSocket connection drops during a ride or payment. |
+| 🚦 **Redis Rate Limiting** | Sliding-window rate limiter prevents DDoS attacks and API abuse on critical endpoints (e.g., booking creation). |
+| 🐞 **Distributed Tracing** | Sentry integration captures unhandled promises, slow DB queries, and crashes across both the Next.js Edge and Node.js instances. |
+
 ---
 
 ## 🛠 Tech Stack
@@ -74,6 +85,8 @@ The platform serves **three distinct user roles**:
 | **Database** | MongoDB Atlas via Mongoose 9 |
 | **Authentication** | NextAuth.js v5 (Credentials + Google OAuth) |
 | **Real-time** | Socket.IO 4.8 (dedicated Express server) |
+| **In-Memory Cache** | Upstash Redis (ioredis) |
+| **Monitoring** | Sentry (`@sentry/nextjs`, `@sentry/node`) |
 | **AI** | Google Gemini 2.0 Flash (`@google/genai`) |
 | **File Storage** | Cloudinary (document + image uploads) |
 | **Payments** | Razorpay |
@@ -187,13 +200,17 @@ Generates structured vendor/vehicle review summaries with key checks and open qu
 
 ```
 Browser (GeoUpdater)
-  ├── emit("identity", userId)         # Authenticate on socket connect
-  └── emit("update-location", coords)  # GPS broadcast (throttled to 10s)
+  ├── fetch("/api/auth/socket-token")  # Generates HMAC SHA-256 signature
+  ├── emit("identity", token)          # Authenticate on socket connect using signature
+  └── emit("update-location", coords)  # GPS broadcast (throttled)
 
 socketServer (Express + Socket.IO)
-  ├── on("identity")    → maps userId ↔ socketId
-  ├── on("update-location") → broadcasts to listening riders
-  └── on("disconnect") → cleans up socket map
+  ├── io.use(verifyHMAC)               # Rejects unauthorized connections
+  ├── on("update-location")            
+  │   ├── redis.geoadd()               # Writes location to In-Memory Redis
+  │   └── io.to(room).emit()           # Broadcasts to listening riders
+  └── on("disconnect")                 
+      └── redis.zrem()                 # Cleans up stale location data
 ```
 
 ---
@@ -488,6 +505,10 @@ In your Cloudinary dashboard → **Settings → Upload → Upload presets**, ens
 
 ## 🔐 Security
 
+- **Socket Authentication** — Cross-service WebSocket authentication using **HMAC SHA-256 signatures** (zero-dependency `crypto`).
+- **DDoS Protection** — Custom **Sliding-Window Redis Rate Limiter** blocks API spam (e.g., max 3 bookings/min).
+- **Graceful Fallbacks** — Client-side UI automatically degrades to smart HTTP polling if the WebSocket server goes offline.
+- **Error Monitoring** — **Sentry** automatically captures and alerts on backend crashes, unhandled promises, and React Error Boundaries.
 - **Password hashing** — bcryptjs (10 salt rounds)
 - **JWT sessions** — encrypted via `AUTH_SECRET` (NextAuth)
 - **Auth guard** — `requireSessionUser()` on every protected endpoint

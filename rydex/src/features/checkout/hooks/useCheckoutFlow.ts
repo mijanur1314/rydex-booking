@@ -183,6 +183,29 @@ export function useCheckoutFlow() {
     })();
   }, []);
 
+  // Phase 3: Graceful Degradation (Polling Fallback)
+  useEffect(() => {
+    if (!bookingId) return;
+    if (status !== "requested" && status !== "awaiting_payment") return;
+
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch("/api/booking/my-active");
+        const data = await res.json();
+        if (data.booking && data.booking.status !== status) {
+          setStatus(data.booking.status);
+          if (data.booking.status === "confirmed") {
+            window.location.href = `/ride/${data.booking._id}`;
+          }
+        }
+      } catch (error) {
+        console.warn("Polling fallback failed", error);
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [bookingId, status]);
+
   useEffect(() => {
     if (status !== "awaiting_payment") return;
     const timer = setTimeout(() => setStatus("payment"), 2000);

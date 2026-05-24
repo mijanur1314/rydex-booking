@@ -1,10 +1,15 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, CheckCircle2, KeyRound, MapPin, Navigation } from "lucide-react";
-import type { BookingStatus } from "../types";
+import { ArrowRight, CheckCircle2, KeyRound, MapPin, Navigation, Navigation2, XCircle } from "lucide-react";
+import type { BookingStatus, IBooking } from "../types";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/redux/store";
+import { clearActiveRide } from "@/redux/rideSlice";
+import axios from "axios";
 
 type ActionBarProps = {
+  booking: IBooking;
   status: BookingStatus;
   otpMode: boolean;
   otp: string;
@@ -28,12 +33,15 @@ type ActionBarProps = {
 };
 
 export function ActionBar({
+  booking,
   status,
   otpMode, otp, loadingOtp, otpVerified, otpError,
   setOtpMode, setOtp, setOtpError, handleVerifyOtp, sendPickupOtp,
   dropOtpMode, dropOtp, loadingDropOtp, dropOtpError,
   setDropOtpMode, setDropOtp, setDropOtpError, handleVerifyDropOtp, sendDropOtp,
 }: ActionBarProps) {
+
+  const dispatch = useDispatch<AppDispatch>();
 
   /* Not an actionable status — render nothing */
   if (!["confirmed", "started", "awaiting_payment"].includes(status)) return null;
@@ -59,13 +67,47 @@ export function ActionBar({
 
         {/* STATE 1 — Arrived at pickup */}
         {status === "confirmed" && !otpMode && !otpVerified && (
-          <motion.button key="arrived"
+          <motion.div key="arrived"
             initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
-            onClick={async () => { await sendPickupOtp(); setOtpMode(true); }}
-            className="w-full bg-zinc-900 hover:bg-zinc-800 active:scale-[0.97] text-white py-4 rounded-2xl font-bold text-sm tracking-wide transition-all flex items-center justify-center gap-2"
+            className="flex flex-col gap-3"
           >
-            <MapPin size={16} /> I&apos;ve Arrived at Pickup <ArrowRight size={15} className="ml-1" />
-          </motion.button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  const lat = booking?.pickupLocation?.coordinates?.[1];
+                  const lng = booking?.pickupLocation?.coordinates?.[0];
+                  if (lat && lng) {
+                    window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank');
+                  }
+                }}
+                className="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-700 py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2"
+              >
+                <Navigation2 size={16} /> Navigate
+              </button>
+              <button
+                onClick={async () => {
+                  if (confirm("Are you sure you want to cancel this ride?")) {
+                    try {
+                      await axios.post(`/api/booking/${booking._id}/reject`);
+                      dispatch(clearActiveRide());
+                      window.location.href = "/partner";
+                    } catch (err) {
+                      alert("Could not cancel ride");
+                    }
+                  }
+                }}
+                className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2"
+              >
+                <XCircle size={16} /> Cancel Ride
+              </button>
+            </div>
+            <button
+              onClick={async () => { await sendPickupOtp(); setOtpMode(true); }}
+              className="w-full bg-zinc-900 hover:bg-zinc-800 active:scale-[0.97] text-white py-4 rounded-2xl font-bold text-sm tracking-wide transition-all flex items-center justify-center gap-2"
+            >
+              <MapPin size={16} /> I've Arrived at Pickup <ArrowRight size={15} className="ml-1" />
+            </button>
+          </motion.div>
         )}
 
         {/* STATE 2 — Enter pickup OTP */}
@@ -128,13 +170,29 @@ export function ActionBar({
 
         {/* STATE 4 — Mark as dropped */}
         {status === "started" && !dropOtpMode && (
-          <motion.button key="drop-btn"
+          <motion.div key="drop-btn"
             initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
-            onClick={async () => { await sendDropOtp(); setDropOtpMode(true); }}
-            className="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-[0.97] text-white py-4 rounded-2xl font-bold text-sm tracking-wide transition-all flex items-center justify-center gap-2"
+            className="flex flex-col gap-3"
           >
-            <Navigation size={16} /> Mark as Dropped <ArrowRight size={15} />
-          </motion.button>
+            <button
+              onClick={() => {
+                const lat = booking?.dropLocation?.coordinates?.[1];
+                const lng = booking?.dropLocation?.coordinates?.[0];
+                if (lat && lng) {
+                  window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank');
+                }
+              }}
+              className="w-full bg-blue-50 hover:bg-blue-100 text-blue-700 py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2"
+            >
+              <Navigation2 size={16} /> Navigate to Dropoff
+            </button>
+            <button
+              onClick={async () => { await sendDropOtp(); setDropOtpMode(true); }}
+              className="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-[0.97] text-white py-4 rounded-2xl font-bold text-sm tracking-wide transition-all flex items-center justify-center gap-2"
+            >
+              <Navigation size={16} /> Mark as Dropped <ArrowRight size={15} />
+            </button>
+          </motion.div>
         )}
 
         {/* STATE 5 — Enter drop OTP */}

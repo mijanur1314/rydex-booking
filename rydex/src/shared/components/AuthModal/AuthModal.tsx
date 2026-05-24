@@ -21,6 +21,7 @@ export default function AuthModal({ open, onClose }: Props) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState<"user" | "vendor">("user");
 
   const [showPassword, setShowPassword] = useState(false);
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -66,7 +67,12 @@ export default function AuthModal({ open, onClose }: Props) {
         return;
       }
 
-      onClose();
+      const meRes = await axios.get("/api/me");
+      if (meRes.data?.role === "vendor") {
+        window.location.href = "/partner";
+      } else {
+        window.location.reload();
+      }
     } finally {
       setLoading(false);
     }
@@ -84,6 +90,7 @@ export default function AuthModal({ open, onClose }: Props) {
         name,
         email,
         password,
+        role,
       });
 
       alert(res.data?.message || "OTP generated");
@@ -272,6 +279,31 @@ export default function AuthModal({ open, onClose }: Props) {
                           onChange={(e) => setPassword(e.target.value)}
                           className="w-full bg-transparent outline-none text-sm"
                         />
+                      </div>
+
+                      <div className="flex gap-4">
+                        <label className="flex-1 flex items-center justify-center gap-2 border border-black/20 rounded-xl py-3 cursor-pointer hover:bg-gray-50 transition">
+                          <input
+                            type="radio"
+                            name="role"
+                            value="user"
+                            checked={role === "user"}
+                            onChange={() => setRole("user")}
+                            className="w-4 h-4 text-black focus:ring-black"
+                          />
+                          <span className="text-sm font-medium">Join as User</span>
+                        </label>
+                        <label className="flex-1 flex items-center justify-center gap-2 border border-black/20 rounded-xl py-3 cursor-pointer hover:bg-gray-50 transition">
+                          <input
+                            type="radio"
+                            name="role"
+                            value="vendor"
+                            checked={role === "vendor"}
+                            onChange={() => setRole("vendor")}
+                            className="w-4 h-4 text-black focus:ring-black"
+                          />
+                          <span className="text-sm font-medium">Join as Vendor</span>
+                        </label>
                       </div>
 
                       <button
