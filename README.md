@@ -103,6 +103,51 @@ The platform serves **three distinct user roles**:
 
 Rydex uses a **dual-service monorepo** — a Next.js application and a dedicated Socket.IO server — enabling independent scaling of HTTP and real-time workloads.
 
+```mermaid
+graph TD
+    UserClient[👤 User / Vendor App\nNext.js Client]
+    
+    subgap
+    end
+
+    subgraph "Frontend & API (Next.js Edge)"
+    NextJS[Next.js 16 App Router]
+    Zod[Zod Validation]
+    Auth[NextAuth.js]
+    end
+
+    subgraph "Real-Time Layer (Node.js)"
+    SocketServer[Socket.IO Server]
+    end
+
+    subgraph "Core Data & Cache"
+    MongoDB[(MongoDB Atlas)]
+    Redis[(Upstash Redis\nGeo-Spatial Queries)]
+    end
+
+    subgraph "Third-Party Integrations"
+    Gemini[🧠 Gemini AI]
+    Razorpay[💳 Razorpay]
+    ZegoCloud[🎥 ZegoCloud KYC]
+    Cloudinary[☁️ Cloudinary]
+    end
+
+    UserClient <-->|HTTPS / REST| NextJS
+    UserClient <-->|WebSocket w/ HMAC| SocketServer
+
+    NextJS --> Zod
+    Zod --> Auth
+    Auth --> MongoDB
+
+    NextJS -->|AI Booking & Pricing| Gemini
+    NextJS -->|Payments| Razorpay
+    NextJS -->|Image Upload| Cloudinary
+
+    SocketServer <-->|Location Broadcast| Redis
+    SocketServer <-->|Auth & Ride State| MongoDB
+    NextJS <-->|Cache & Rate Limiting| Redis
+```
+
 ```
 rydex-project/
 │
