@@ -17,10 +17,13 @@ import { Server } from "socket.io"
 import axios from "axios"
 import Redis from "ioredis"
 import crypto from "crypto"
+import { createAdapter } from "@socket.io/redis-adapter"
 
 dotenv.config()
 
 const redis = new Redis(process.env.UPSTASH_REDIS_URL)
+const pubClient = new Redis(process.env.UPSTASH_REDIS_URL)
+const subClient = pubClient.duplicate()
 
 import mongoose from "mongoose"
 import User from "./models/user.models.js"
@@ -34,7 +37,8 @@ const port=process.env.PORT || 5000
 const io=new Server(server,{
     cors:{
         origin:process.env.NEXT_BASE_URL
-    }
+    },
+    adapter: createAdapter(pubClient, subClient)
 })
 
 
