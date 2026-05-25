@@ -12,6 +12,9 @@ export type RazorpayOptions = {
   description: string;
   order_id: string;
   handler: (response: RazorpayResponse) => void | Promise<void>;
+  modal?: {
+    ondismiss?: () => void;
+  };
 };
 
 export type RazorpayConstructor = new (options: RazorpayOptions) => {
@@ -26,4 +29,3 @@ export type CheckoutStatus =
   | "idle" | "requested" | "awaiting_payment"
   | "rejected" | "expired" | "cancelled"
   | "payment" | "confirmed";
-

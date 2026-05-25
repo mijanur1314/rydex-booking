@@ -17,7 +17,6 @@ export async function POST(req: Request) {
       userId,
       {
         socketId,
-        isOnline: true,
       },
       { new: true }
     );

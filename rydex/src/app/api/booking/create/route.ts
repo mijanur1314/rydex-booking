@@ -49,7 +49,23 @@ export async function POST(req: Request) {
     const existing = await ensureNoActiveBooking(user.id);
 
     if (existing) {
-      return NextResponse.json({ success: true, booking: existing });
+      const isSameRide =
+        String(existing.driver) === String(input.driverId) &&
+        String(existing.vehicle) === String(input.vehicleId) &&
+        existing.pickupAddress === input.pickupAddress &&
+        existing.dropAddress === input.dropAddress;
+
+      if (!isSameRide) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "You already have an active booking. Please complete or cancel it before booking another ride.",
+          },
+          { status: 409 },
+        );
+      }
+
+      return NextResponse.json({ success: true, booking: existing, existing: true });
     }
 
     const pricing = buildRidePricing({

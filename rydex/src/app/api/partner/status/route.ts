@@ -37,6 +37,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "User not found" }, { status: 404 });
     }
 
+    const Redis = require("ioredis");
+    const redis = new Redis(process.env.UPSTASH_REDIS_URL || "");
+
+    if (isOnline && latitude !== undefined && longitude !== undefined) {
+      await redis.geoadd("driver-locations", longitude, latitude, userAuth.id);
+    } else if (!isOnline) {
+      await redis.zrem("driver-locations", userAuth.id);
+    }
+
     return NextResponse.json({ success: true, isOnline: user.isOnline });
   } catch (error) {
     if (error instanceof AuthError) {

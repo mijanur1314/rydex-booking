@@ -69,17 +69,27 @@ export function useBookRideForm() {
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
       async ({ coords }) => {
+        const fallbackAddress = `Current location (${coords.latitude.toFixed(5)}, ${coords.longitude.toFixed(5)})`;
+
+        setPickup(fallbackAddress);
+        setPickupLat(coords.latitude);
+        setPickupLng(coords.longitude);
+        setPickupResults([]);
+
         try {
-          const res = await fetch(`https://photon.komoot.io/reverse?lat=${coords.latitude}&lon=${coords.longitude}&limit=1`);
+          const controller = new AbortController();
+          const timeout = window.setTimeout(() => controller.abort(), 8000);
+          const res = await fetch(
+            `https://photon.komoot.io/reverse?lat=${coords.latitude}&lon=${coords.longitude}&limit=1`,
+            { signal: controller.signal },
+          );
+          window.clearTimeout(timeout);
           const data = await res.json();
           if (data?.features?.length) {
             const place = data.features[0].properties;
             const address = [place.name, place.street, place.city, place.state, place.country].filter(Boolean).join(", ");
-            setPickup(address);
+            setPickup(address || fallbackAddress);
             setPickupCountry(place.countrycode?.toLowerCase() || null);
-            setPickupLat(coords.latitude);
-            setPickupLng(coords.longitude);
-            setPickupResults([]);
           }
         } finally {
           setLocating(false);

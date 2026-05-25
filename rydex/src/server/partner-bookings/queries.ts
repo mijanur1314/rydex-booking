@@ -34,7 +34,7 @@ export async function getActiveDriverBooking(driverId: string) {
   return Booking.findOne({
     driver: driverId,
     status: {
-      $in: ["requested", "awaiting_payment", "confirmed", "started"],
+      $in: ["awaiting_payment", "confirmed", "arriving", "arrived", "started"],
     },
   })
     .sort({ createdAt: -1 })

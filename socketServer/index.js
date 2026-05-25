@@ -92,15 +92,19 @@ io.use((socket, next) => {
   }
 });
 
-io.on("connection", (socket) => {
+io.on("connection", async (socket) => {
+  if (socket.userId) {
+    await User.findByIdAndUpdate(socket.userId, {
+      socketId: socket.id
+    })
+  }
 
   socket.on("identity", async (userId) => {
 
     socket.userId = userId
 
     await User.findByIdAndUpdate(userId, {
-      socketId: socket.id,
-      isOnline: true
+      socketId: socket.id
     })
 
   })
@@ -130,7 +134,10 @@ socket.on("chat-message", (msg) => {
     if (!socket.userId) return
 
     try {
-      await redis.geoadd("driver-locations", longitude, latitude, socket.userId)
+      const user = await User.findById(socket.userId).select("role isOnline")
+      if (user?.role === "vendor" && user.isOnline) {
+        await redis.geoadd("driver-locations", longitude, latitude, socket.userId)
+      }
     } catch (error) {
       console.error("Redis geoadd error:", error)
     }
@@ -146,10 +153,10 @@ socket.on("chat-message", (msg) => {
       console.error("Redis zrem error:", error)
     }
 
-    await User.findByIdAndUpdate(socket.userId, {
-      isOnline: false,
-      socketId: null
-    })
+    await User.findOneAndUpdate(
+      { _id: socket.userId, socketId: socket.id },
+      { socketId: null }
+    )
   })
 
 })

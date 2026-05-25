@@ -33,7 +33,7 @@ export function useCheckoutFlow() {
   const drop = params.get("drop") || "Drop Location";
   const vehicle = params.get("vehicle") || "car";
   const vehicleId = params.get("vehicleId");
-  const fare = Number(params.get("fare")) || 249;
+  const initialFare = Number(params.get("fare")) || 249;
   const mobileNumber = params.get("mobileNumber") || "";
   const driverId = params.get("driverId");
   const pickupLat = Number(params.get("pickupLat"));
@@ -43,6 +43,7 @@ export function useCheckoutFlow() {
 
   const [loading, setLoading] = useState(false);
   const [bookingId, setBookingId] = useState<string | null>(null);
+  const [fare, setFare] = useState(initialFare);
   const [status, setStatus] = useState<CheckoutStatus>("idle");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
 
@@ -59,6 +60,7 @@ export function useCheckoutFlow() {
 
   const resetCheckout = () => {
     setBookingId(null);
+    setFare(initialFare);
     setStatus("idle");
     setPaymentMethod(null);
   };
@@ -83,6 +85,7 @@ export function useCheckoutFlow() {
       const data = await res.json();
       if (data.success) {
         setBookingId(data.booking._id);
+        if (typeof data.booking.fare === "number") setFare(data.booking.fare);
         setStatus(data.booking.status || "requested");
       } else {
         alert(data.message || "Booking failed");
@@ -122,6 +125,13 @@ export function useCheckoutFlow() {
         body: JSON.stringify({ bookingId }),
       });
       const orderData = await orderRes.json();
+      if (!orderRes.ok || !orderData.success) {
+        alert(orderData.message || "Payment order failed");
+        return;
+      }
+
+      if (typeof orderData.fare === "number") setFare(orderData.fare);
+
       const Razorpay = (window as RazorpayWindow).Razorpay;
 
       if (!Razorpay) {
@@ -143,7 +153,15 @@ export function useCheckoutFlow() {
             body: JSON.stringify({ bookingId, ...response }),
           });
           const verifyData = await verify.json();
-          if (verifyData.success) window.location.href = `/ride/${bookingId}`;
+          if (verify.ok && verifyData.success) {
+            window.location.assign(`/ride/${bookingId}`);
+            return;
+          }
+
+          alert(verifyData.message || "Payment verification failed");
+        },
+        modal: {
+          ondismiss: () => setLoading(false),
         },
       }).open();
     } catch (err) {

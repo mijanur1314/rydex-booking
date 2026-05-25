@@ -142,6 +142,7 @@ function RouteStep(props: BookFormSectionsProps) {
               className="flex-1 bg-transparent text-sm font-semibold text-zinc-900 placeholder:text-zinc-400 outline-none"
             />
             <motion.button
+              type="button"
               whileTap={{ scale: 0.88 }}
               onClick={props.onUseCurrentLocation}
               disabled={props.locating}
@@ -166,8 +167,8 @@ function RouteStep(props: BookFormSectionsProps) {
                 props.onDropChange(event.target.value);
                 props.onSearchDrop(event.target.value);
               }}
-              disabled={!props.pickupCountry}
-              placeholder={props.pickupCountry ? "Drop location" : "Select pickup first"}
+              disabled={!props.pickup}
+              placeholder={props.pickup ? "Drop location" : "Select pickup first"}
               className="flex-1 bg-transparent text-sm font-semibold text-zinc-900 placeholder:text-zinc-400 outline-none disabled:opacity-50"
             />
             <Navigation size={14} className="text-zinc-300 flex-shrink-0" />

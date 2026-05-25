@@ -53,6 +53,13 @@ export async function POST(req: Request) {
       });
     }
 
+    if (booking.status !== "awaiting_payment") {
+      return Response.json(
+        { success: false, message: "Driver must accept the ride before payment can be verified." },
+        { status: 400 },
+      );
+    }
+
     const adminCommission = booking.fare * 0.1;
     const partnerAmount = booking.fare - adminCommission;
 
