@@ -7,19 +7,14 @@ import {
   Car,
   Clock,
   Star,
-  ArrowRight,
   Bell,
   ShieldCheck,
   CheckCircle2,
   Lock,
-  Circle,
   Video,
   BadgeCheck,
   FileText,
   LogOut,
-  User,
-  Settings,
-  Car as CarIcon,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { getSocket } from "@/lib/socket";
@@ -298,6 +293,7 @@ export default function PartnerDashboard() {
           paymentStatus: string;
           partnerAmount?: number;
           createdAt: string;
+          user?: { name?: string };
         }>;
 
         const completedRides = bookings.filter((b) => b.status === "completed");
@@ -318,7 +314,7 @@ export default function PartnerDashboard() {
         }));
 
         setRecentRides(
-          bookings.slice(0, 3).map((b: any) => ({
+          bookings.slice(0, 3).map((b) => ({
             id: b._id,
             user: b.user?.name || "Customer",
             date: new Date(b.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short" }),

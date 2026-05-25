@@ -2,7 +2,7 @@
 
 import axios from "axios";
 import { motion } from "framer-motion";
-import { ArrowRight, CheckCircle2, ChevronRight, Video } from "lucide-react";
+import { ArrowRight, CheckCircle2, Video } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { AVATAR_COLORS, KYC_STATUS } from "../constants";
 import type { ReviewItem, TabType } from "../types";

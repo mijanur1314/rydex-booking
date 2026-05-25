@@ -4,6 +4,7 @@ import Booking from "@/models/booking.model";
 import { sendMail } from "@/lib/mailer";
 import { z } from "zod";
 import { mongoIdSchema, parseJsonBody, validationErrorResponse } from "@/server/http/validation";
+import axios from "axios";
 
 const sendOtpSchema = z.object({
   bookingId: mongoIdSchema,
@@ -37,7 +38,6 @@ export async function POST(req: Request) {
     await booking.save();
 
     if (process.env.NEXT_PUBLIC_SOCKET_SERVER) {
-      const axios = require('axios');
       await axios.post(`${process.env.NEXT_PUBLIC_SOCKET_SERVER}/emit`, {
         userId: booking.user._id,
         event: 'booking-updated',

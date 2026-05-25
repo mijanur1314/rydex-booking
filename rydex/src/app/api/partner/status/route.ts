@@ -3,6 +3,7 @@ import connectDb from "@/lib/db";
 import { AuthError, requireRole } from "@/server/auth/guards";
 import User from "@/models/user.model";
 import { z } from "zod";
+import Redis from "ioredis";
 
 const statusSchema = z.object({
   isOnline: z.boolean(),
@@ -18,7 +19,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { isOnline, latitude, longitude } = statusSchema.parse(body);
 
-    const updateData: any = { isOnline };
+    const updateData: Record<string, unknown> = { isOnline };
     if (isOnline && latitude !== undefined && longitude !== undefined) {
       updateData.location = {
         type: "Point",
@@ -37,7 +38,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "User not found" }, { status: 404 });
     }
 
-    const Redis = require("ioredis");
     const redis = new Redis(process.env.UPSTASH_REDIS_URL || "");
 
     if (isOnline && latitude !== undefined && longitude !== undefined) {

@@ -25,8 +25,11 @@ export const fetchActiveRide = createAsyncThunk(
         return response.data as IBooking;
       }
       return null;
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || "Failed to fetch ride");
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        return rejectWithValue(error.response?.data?.message || "Failed to fetch ride");
+      }
+      return rejectWithValue(error instanceof Error ? error.message : "Failed to fetch ride");
     }
   }
 );

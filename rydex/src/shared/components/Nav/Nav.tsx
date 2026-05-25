@@ -58,12 +58,12 @@ export default function Nav() {
                       {session?.user?.name || "User"}
                     </p>
                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">
-                      {(session?.user as any)?.role || "USER"}
+                      {(session?.user as { role?: string })?.role || "USER"}
                     </p>
                   </div>
 
                   <div className="px-3 py-2">
-                    {(!((session?.user as any)?.role) || (session?.user as any)?.role === "user") && (
+                    {(!((session?.user as { role?: string })?.role) || (session?.user as { role?: string })?.role === "user") && (
                       <Link 
                         href="/partner"
                         onClick={() => setProfileOpen(false)}
@@ -81,7 +81,7 @@ export default function Nav() {
                       </Link>
                     )}
 
-                    {(session?.user as any)?.role === "vendor" && (
+                    {(session?.user as { role?: string })?.role === "vendor" && (
                       <Link 
                         href="/partner"
                         onClick={() => setProfileOpen(false)}
@@ -97,7 +97,7 @@ export default function Nav() {
                       </Link>
                     )}
 
-                    {(session?.user as any)?.role === "admin" && (
+                    {(session?.user as { role?: string })?.role === "admin" && (
                       <Link 
                         href="/admin"
                         onClick={() => setProfileOpen(false)}

@@ -91,7 +91,7 @@ export function ActionBar({
                       await axios.post(`/api/booking/${booking._id}/reject`);
                       dispatch(clearActiveRide());
                       window.location.href = "/partner";
-                    } catch (err) {
+                    } catch {
                       alert("Could not cancel ride");
                     }
                   }
@@ -105,7 +105,7 @@ export function ActionBar({
               onClick={async () => { await sendPickupOtp(); setOtpMode(true); }}
               className="w-full bg-zinc-900 hover:bg-zinc-800 active:scale-[0.97] text-white py-4 rounded-2xl font-bold text-sm tracking-wide transition-all flex items-center justify-center gap-2"
             >
-              <MapPin size={16} /> I've Arrived at Pickup <ArrowRight size={15} className="ml-1" />
+              <MapPin size={16} /> I&apos;ve Arrived at Pickup <ArrowRight size={15} className="ml-1" />
             </button>
           </motion.div>
         )}

@@ -10,7 +10,6 @@ import { PEEK_H, STATUS_CONFIG } from "./constants";
 import { CompletedScreen, FailedScreen, PanelContent } from "./components/RideScreens";
 import type {
   BookingDetails,
-  BookingStatus,
   BookingUpdatedPayload,
   DriverAssignedPayload,
   DriverLocationPayload,

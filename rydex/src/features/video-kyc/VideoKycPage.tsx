@@ -7,7 +7,22 @@ import { VideoKycPreJoin } from "./components/VideoKycPreJoin";
 import { useVideoKycCall } from "./hooks/useVideoKycCall";
 
 export default function VideoKYCPage() {
-  const call = useVideoKycCall();
+  const {
+    actionLoading,
+    cameraOn,
+    completeKyc,
+    containerRef,
+    isAdmin,
+    joined,
+    loading,
+    micOn,
+    previewRef,
+    router,
+    startCall,
+    toggleCamera,
+    toggleMic,
+  } = useVideoKycCall();
+
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
@@ -17,40 +32,40 @@ export default function VideoKYCPage() {
       alert("Rejection reason required");
       return;
     }
-    void call.completeKyc("reject", rejectReason);
+    void completeKyc("reject", rejectReason);
   };
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
       <VideoKycHeader
-        isAdmin={call.isAdmin}
-        joined={call.joined}
-        router={call.router}
+        isAdmin={isAdmin}
+        joined={joined}
+        router={router}
         onApprove={() => setShowApproveModal(true)}
         onReject={() => setShowRejectModal(true)}
       />
 
       <div className="flex-1 relative">
-        <div ref={call.containerRef} className={`absolute inset-0 ${call.joined ? "block" : "hidden"}`} />
-        {!call.joined && (
+        <div ref={containerRef} className={`absolute inset-0 ${joined ? "block" : "hidden"}`} />
+        {!joined && (
           <VideoKycPreJoin
-            cameraOn={call.cameraOn}
-            loading={call.loading}
-            micOn={call.micOn}
-            previewRef={call.previewRef}
-            onStartCall={call.startCall}
-            onToggleCamera={call.toggleCamera}
-            onToggleMic={call.toggleMic}
+            cameraOn={cameraOn}
+            loading={loading}
+            micOn={micOn}
+            previewRef={previewRef}
+            onStartCall={startCall}
+            onToggleCamera={toggleCamera}
+            onToggleMic={toggleMic}
           />
         )}
       </div>
 
       <VideoKycModals
-        actionLoading={call.actionLoading}
+        actionLoading={actionLoading}
         rejectReason={rejectReason}
         showApproveModal={showApproveModal}
         showRejectModal={showRejectModal}
-        onApprove={() => void call.completeKyc("approve")}
+        onApprove={() => void completeKyc("approve")}
         onCloseApprove={() => setShowApproveModal(false)}
         onCloseReject={() => setShowRejectModal(false)}
         onReject={handleReject}

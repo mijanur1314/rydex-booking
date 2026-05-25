@@ -20,7 +20,7 @@ export async function GET() {
     const token = `${session.user.id}.${signature}`;
 
     return NextResponse.json({ success: true, token });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
