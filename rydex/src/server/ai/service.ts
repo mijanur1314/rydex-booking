@@ -19,7 +19,7 @@ export type {
 
 dns.setDefaultResultOrder("ipv4first");
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "dummy_key" });
 
 // gemini-2.0-flash is the stable GA model; 2.5-flash is experimental and can 503 under load
 const GEMINI_MODEL = "gemini-2.0-flash";
