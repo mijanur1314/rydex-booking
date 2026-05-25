@@ -106,9 +106,6 @@ Rydex uses a **dual-service monorepo** — a Next.js application and a dedicated
 ```mermaid
 graph TD
     UserClient[👤 User / Vendor App\nNext.js Client]
-    
-    subgap
-    end
 
     subgraph "Frontend & API (Next.js Edge)"
     NextJS[Next.js 16 App Router]

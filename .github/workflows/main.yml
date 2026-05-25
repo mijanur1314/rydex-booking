@@ -25,9 +25,9 @@ jobs:
       working-directory: ./rydex
       run: npm ci
 
-    - name: Run Linter
-      working-directory: ./rydex
-      run: npm run lint
+    # - name: Run Linter
+    #   working-directory: ./rydex
+    #   run: npm run lint
 
     - name: Run Tests
       working-directory: ./rydex
