@@ -65,11 +65,14 @@ The platform serves **three distinct user roles**:
 ### 🚀 Production Reliability & Architecture
 | Feature | Description |
 |---|---|
+| 🐳 **Containerised Infrastructure** | Fully containerised using Docker Compose, enabling instant, reproducible production environments across any cloud provider. |
 | 🏎️ **Redis Geo-Spatial Queries** | High-frequency driver GPS locations are decoupled from MongoDB and stored in Upstash Redis (`GEOADD`/`GEORADIUS`) for millisecond lookups. |
+| 🔄 **Horizontal Scalability** | WebSocket server architecture uses the `@socket.io/redis-adapter` backed by Upstash Redis Pub/Sub, allowing horizontal scaling of Socket.IO instances behind a load balancer without dropping real-time events. |
 | 🛡️ **HMAC Socket Security** | Next.js API generates secure HMAC SHA-256 signatures for socket authentication, preventing malicious spoofing on the decoupled Node.js server. |
 | 📉 **Graceful Degradation** | React front-end automatically falls back to an intelligent HTTP polling mechanism if the WebSocket connection drops during a ride or payment. |
 | 🚦 **Redis Rate Limiting** | Sliding-window rate limiter prevents DDoS attacks and API abuse on critical endpoints (e.g., booking creation). |
 | 🐞 **Distributed Tracing** | Sentry integration captures unhandled promises, slow DB queries, and crashes across both the Next.js Edge and Node.js instances. |
+| 🔄 **Strict CI/CD** | GitHub Actions enforce zero TypeScript errors and zero ESLint warnings on every push. |
 
 ---
 
@@ -84,8 +87,9 @@ The platform serves **three distinct user roles**:
 | **State Management** | Redux Toolkit + React-Redux |
 | **Database** | MongoDB Atlas via Mongoose 9 |
 | **Authentication** | NextAuth.js v5 (Credentials + Google OAuth) |
-| **Real-time** | Socket.IO 4.8 (dedicated Express server) |
+| **Real-time** | Socket.IO 4.8 + Redis Pub/Sub Adapter |
 | **In-Memory Cache** | Upstash Redis (ioredis) |
+| **Infrastructure** | Docker + Docker Compose |
 | **Monitoring** | Sentry (`@sentry/nextjs`, `@sentry/node`) |
 | **AI** | Google Gemini 2.0 Flash (`@google/genai`) |
 | **File Storage** | Cloudinary (document + image uploads) |
@@ -140,7 +144,7 @@ graph TD
     NextJS -->|Payments| Razorpay
     NextJS -->|Image Upload| Cloudinary
 
-    SocketServer <-->|Location Broadcast| Redis
+    SocketServer <-->|Pub/Sub Scaling & Locations| Redis
     SocketServer <-->|Auth & Ride State| MongoDB
     NextJS <-->|Cache & Rate Limiting| Redis
 ```
@@ -261,6 +265,7 @@ socketServer (Express + Socket.IO)
 
 ### Prerequisites
 - Node.js ≥ 20 · npm ≥ 10
+- Docker Desktop (optional, for production simulation)
 - MongoDB Atlas cluster
 - Google Cloud project (Gemini API + OAuth)
 - Cloudinary account
@@ -345,6 +350,21 @@ PORT=8000
 ```bash
 npm run dev     # → http://localhost:8000
 ```
+
+---
+
+### Step 4 — Run via Docker Compose (Alternative)
+
+If you prefer to run the entire application stack (Next.js + Socket Server) in an isolated, production-like environment:
+
+```bash
+# Make sure you are in the project root directory
+docker-compose up --build
+```
+
+- The Next.js frontend will be mapped to `http://localhost:3000`
+- The Socket.io backend will be mapped to `http://localhost:8000`
+- Docker handles all dependency installations and cross-service networking automatically.
 
 ---
 
