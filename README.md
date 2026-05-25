@@ -366,6 +366,12 @@ docker-compose up --build
 - The Socket.io backend will be mapped to `http://localhost:8000`
 - Docker handles all dependency installations and cross-service networking automatically.
 
+**To stop the containers:**
+If you want to shut down the project and clean up the Docker network, press `Ctrl + C` in the running terminal, or run the following command in a new terminal:
+```bash
+docker-compose down
+```
+
 ---
 
 ## 📤 Pushing to GitHub
