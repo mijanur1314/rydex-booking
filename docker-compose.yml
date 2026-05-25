@@ -11,9 +11,10 @@ services:
     env_file:
       - ./rydex/.env.local
     environment:
-      # Ensure Next.js knows the socket server URL within the docker network
-      # or from the host perspective depending on how users access it.
-      # For local dev via localhost, we keep it as localhost:8000
+      # Explicitly set the base URLs to localhost so NextAuth and Next.js don't redirect to 0.0.0.0
+      - AUTH_URL=http://localhost:3000
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXT_PUBLIC_APP_URL=http://localhost:3000
       - NEXT_PUBLIC_SOCKET_SERVER=http://localhost:8000
     depends_on:
       - socket
