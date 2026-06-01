@@ -29,16 +29,16 @@ import mongoose from "mongoose"
 import User from "./models/user.models.js"
 
 await mongoose.connect(process.env.MONGODB_URL)
-const app=express()
+const app = express()
 app.use(express.json())
-const server=http.createServer(app)
-const port=process.env.PORT || 5000
+const server = http.createServer(app)
+const port = process.env.PORT || 5000
 
-const io=new Server(server,{
-    cors:{
-        origin:process.env.NEXT_BASE_URL
-    },
-    adapter: createAdapter(pubClient, subClient)
+const io = new Server(server, {
+  cors: {
+    origin: process.env.NEXT_BASE_URL
+  },
+  adapter: createAdapter(pubClient, subClient)
 })
 
 
@@ -76,10 +76,10 @@ io.use((socket, next) => {
   try {
     const parts = token.split(".");
     if (parts.length !== 2) throw new Error("Invalid token format");
-    
+
     const [userId, signature] = parts;
     const secret = process.env.AUTH_SECRET || "fallback_secret";
-    
+
     const hmac = crypto.createHmac("sha256", secret);
     hmac.update(userId);
     const expectedSignature = hmac.digest("hex");
@@ -113,26 +113,24 @@ io.on("connection", async (socket) => {
 
   })
 
-// server.js — sab jagah ek hi format rakho
+  socket.on("join-booking", (bookingId) => {
+    console.log("joining room:", `booking-${bookingId}`);
+    socket.join(`booking-${bookingId}`);
+  });
 
-socket.on("join-booking", (bookingId) => {
-  console.log("joining room:", `booking-${bookingId}`);
-  socket.join(`booking-${bookingId}`);  // ← prefix add karo
-});
+  socket.on("driver-location-update", (data) => {
+    io.to(`booking-${data.bookingId}`)
+      .emit("driver-location", {
+        latitude: data.latitude,
+        longitude: data.longitude,
+        status: "arriving"
+      });
+  });
 
-socket.on("driver-location-update", (data) => {
-  io.to(`booking-${data.bookingId}`)   // ✅ already sahi
-    .emit("driver-location", {
-      latitude: data.latitude,
-      longitude: data.longitude,
-      status: "arriving"
-    });
-});
-
-socket.on("chat-message", (msg) => {
-  console.log("chat to room:", `booking-${msg.rideId}`);
-  io.to(`booking-${msg.rideId}`).emit("chat-message", msg);  // ← prefix add karo
-});
+  socket.on("chat-message", (msg) => {
+    console.log("chat to room:", `booking-${msg.rideId}`);
+    io.to(`booking-${msg.rideId}`).emit("chat-message", msg);
+  });
 
   socket.on("update-location", async ({ latitude, longitude }) => {
     if (!socket.userId) return
@@ -146,7 +144,7 @@ socket.on("chat-message", (msg) => {
       console.error("Redis geoadd error:", error)
     }
   })
- 
+
 
   socket.on("disconnect", async () => {
     if (!socket.userId) return
@@ -170,6 +168,6 @@ socket.on("chat-message", (msg) => {
 
 
 
-server.listen(port,()=>{
-    console.log("server started at",port)
+server.listen(port, () => {
+  console.log("server started at", port)
 })
